@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Result</title>
+</head>
+<body>
+<h2>Your Score: <span th:text="${score}"></span></h2>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz</title>
+</head>
+<body>
+<h2>Quiz</h2>
+<form action="/quiz/submit" method="post">
+    <label>Your name:</label>
+    <input type="text" name="username" required><br>
+    <div th:each="q, stat : ${questions}">
+        <p th:text="${q.content}"></p>
+        <input type="radio" th:name="'answers[' + ${stat.index} + ']'" value="A"> <span th:text="${q.optionA}"></span>
+        <input type="radio" th:name="'answers[' + ${stat.index} + ']'" value="B"> <span th:text="${q.optionB}"></span>
+        <input type="radio" th:name="'answers[' + ${stat.index} + ']'" value="C"> <span th:text="${q.optionC}"></span>
+        <input type="radio" th:name="'answers[' + ${stat.index} + ']'" value="D"> <span th:text="${q.optionD}"></span>
+    </div>
+    <button type="submit">Submit</button>
+</form>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+</head>
+<body>
+<h2>Register</h2>
+<form action="/user/register" method="post">
+    <label>Username:</label>
+    <input type="text" name="username" required><br>
+    <label>Password:</label>
+    <input type="password" name="password" required><br>
+    <button type="submit">Register</button>
+</form>
+<div th:if="${error}">
+    <p th:text="${error}" style="color:red"></p>
+</div>
+<div th:if="${message}">
+    <p th:text="${message}" style="color:green"></p>
+</div>
+</body>
+</html>
+
