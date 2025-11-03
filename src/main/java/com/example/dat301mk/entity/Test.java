@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,9 +22,6 @@ public class Test {
 
     @Column(name = "title", nullable = false)
     private String title;
-
-    @Column(name = "subject", length = 100)
-    private String subject;
 
     @Column(name = "total_questions", nullable = false)
     private Integer totalQuestions;
@@ -43,4 +41,27 @@ public class Test {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "pdf_path")
+    private String pdfPath;
+
+    @Column(name = "csv_answer_path")
+    private String csvAnswerPath;
+
+    @Transient
+    private Long pdfSizeKb;
+
+    @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TestVersion> testVersions;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id", nullable = false)
+    private Subject subject;
+
+    public Long getPdfSizeKb() {
+        return pdfSizeKb;
+    }
+
+    public void setPdfSizeKb(Long pdfSizeKb) {
+        this.pdfSizeKb = pdfSizeKb;
+    }
 }

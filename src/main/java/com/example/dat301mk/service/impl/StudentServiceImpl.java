@@ -83,7 +83,7 @@ public class StudentServiceImpl implements StudentService {
                 .sorted((r1, r2) -> r2.getGradedAt().compareTo(r1.getGradedAt()))
                 .limit(limit)
                 .map(result -> new ResultInfoDTO(
-                        result.getTest().getSubject(),
+                        result.getTest().getSubject().getSubjectName(), // Fix: get subject name as String
                         result.getTest().getTitle(),
                         result.getGradedAt(),
                         result.getTotalScore(),

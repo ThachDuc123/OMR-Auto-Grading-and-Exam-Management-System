@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface TestVersionRepository extends JpaRepository<TestVersion, Long> {
     int countByTest_Classes_Id(Long classId);
+    List<TestVersion> findByTest(Test test);
 }
