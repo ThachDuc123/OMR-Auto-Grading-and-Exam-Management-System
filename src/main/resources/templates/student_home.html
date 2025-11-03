@@ -511,7 +511,7 @@
             <span>OMR System</span>
         </div>
         <div class="nav-menu">
-            <a class="nav-item" th:classappend="${currentPath == '/student_home' ? 'active' : ''}" href="/student_home">
+            <a class="nav-item" th:if="${#strings.equalsIgnoreCase(user.role, 'student') or #strings.equalsIgnoreCase(user.role, 'học sinh')}" th:classappend="${currentPath == '/student_home' ? 'active' : ''}" href="/student_home">
                 <p>Tổng quan</p>
                 <div class="nav-indicator"></div>
             </a>

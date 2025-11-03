@@ -257,3 +257,5 @@ INSERT INTO results (sheet_id, student_id, test_id, total_correct, total_wrong, 
 VALUES
     (1,4,1,5,0,0,5,5,2,TRUE),
     (2,5,1,3,2,0,3,5,2,TRUE);
+ALTER TABLE test_versions ADD COLUMN file_path VARCHAR(512);
+ALTER TABLE test_versions ADD COLUMN answer_path VARCHAR(512);
