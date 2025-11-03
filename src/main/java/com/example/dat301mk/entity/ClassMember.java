@@ -27,4 +27,9 @@ public class ClassMember {
     @Column(name = "joined_at")
     private Instant joinedAt;
 
+    @Column(name = "status", nullable = false)
+    private String status = "approved"; // "approved" hoặc "pending"
+
+    @Column(name = "is_hidden", nullable = false)
+    private Boolean isHidden = false;
 }

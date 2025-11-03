@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lớp học - Hệ thống OMR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: #f7fafc;
+            color: #202227;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 70px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            height: 100%;
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .logo img {
+            height: 32px;
+        }
+
+        /* Navigation styles */
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #4a5568;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover {
+            background-color: #f7fafc;
+            color: #667eea;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+            background-color: #ebf4ff;
+        }
+
+        .nav-item p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .nav-indicator {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background-color: #667eea;
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-item.active .nav-indicator {
+            opacity: 1;
+        }
+
+        .user-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .       .user-menu {
+            position: relative;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .user-info:hover {
+            background: #f7fafc;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .user-role {
+            font-size: 14px;
+            color: #718096;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 200px;
+            overflow: hidden;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #4a5568;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f7fafc;
+        }
+        .user-menu.active .dropdown-menu {
+            display: block;
+        }
+        /* Main Content */
+        .main-container {
+            margin-top: 64px;
+            width: 100%;
+        }
+
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            min-height: calc(100vh - 64px);
+        }
+
+        .content {
+            width: 100%;
+        }
+
+        /* Tab Section */
+        .tab-section {
+            position: sticky;
+            top: 64px;
+            background: white;
+            z-index: 350;
+            padding: 0 32px;
+        }
+
+        .tab-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 63px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .tab-btn {
+            padding: 0;
+            min-width: 150px;
+            height: 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .tab-btn.active {
+            background: #164592;
+            color: white;
+        }
+
+        .tab-btn.inactive {
+            background: #efeff5;
+            color: #4e525e;
+        }
+
+        /* Search Section */
+        .search-section {
+            position: sticky;
+            top: 127px;
+            background: white;
+            z-index: 300;
+            padding: 0 32px 16px;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-left {
+            display: flex;
+            flex: 1;
+            gap: 16px;
+            margin-right: 16px;
+        }
+
+        .search-input {
+            flex: 3;
+            position: relative;
+        }
+
+        .search-input input {
+            width: 100%;
+            padding: 16.5px 14px;
+            border: 1px solid #d8dcf0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-input input:focus {
+            border-color: #1e88e5;
+        }
+
+        .sort-select {
+            min-width: 160px;
+            position: relative;
+        }
+
+        .sort-select select {
+            width: 100%;
+            padding: 16.5px 32px 16.5px 14px;
+            border: 1px solid #d8dcf0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            appearance: none;
+            background: white;
+            cursor: pointer;
+        }
+
+        .sort-select::after {
+            content: '▼';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .find-class-btn {
+            padding: 0 16px;
+            height: 53.63px;
+            background: #1e88e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .find-class-btn:hover {
+            background: #1976d2;
+        }
+
+        /* Table Header */
+        .table-header {
+            width: 100%;
+            margin: 16px 0 0 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            background: #efeff5;
+            box-sizing: border-box;
+        }
+        .header-column.name, .class-info-left {
+            flex: 2 1 0;
+            min-width: 0;
+            max-width: none;
+            box-sizing: border-box;
+        }
+        .header-column.info, .class-info-stats {
+            flex: 2 1 0;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            min-width: 0;
+            max-width: none;
+            box-sizing: border-box;
+        }
+        .header-stat, .stat-item {
+            flex: 1 1 0;
+            min-width: 0;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12.25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .header-column.menu-placeholder, .class-menu {
+            flex: 0 0 48px;
+            min-width: 48px;
+            max-width: 48px;
+            box-sizing: border-box;
+        }
+
+        /* Class List */
+        .class-list {
+            width: 100%;
+            padding: 0 0 32px 0;
+            box-sizing: border-box;
+        }
+
+        .class-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0;
+            min-height: 80px;
+            border: none;
+            background: transparent;
+            text-align: left;
+            box-sizing: border-box;
+        }
+
+        .class-item:hover {
+            background: #f7fafc;
+        }
+
+        .class-info-left {
+            width: 50%;
+            display: flex;
+            align-items: center;
+        }
+
+        .class-thumbnail {
+            min-width: 56px;
+            position: relative;
+        }
+
+        .class-thumbnail img {
+            width: 140px;
+            height: 60px;
+            object-fit: cover;
+            aspect-ratio: 21/9;
+        }
+
+        .class-details {
+            margin-left: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .class-name {
+            color: #202227;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .class-code {
+            font-size: 12.25px;
+            color: #718096;
+        }
+
+        .class-info-right {
+            width: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .class-stats {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .stat-item {
+            width: 140px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #000;
+        }
+
+        .stat-item p {
+            font-size: 12.25px;
+        }
+
+        .class-menu {
+            width: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            position: relative;
+        }
+
+        .menu-btn {
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+
+        .menu-btn:hover {
+            background: #f0f2f5;
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 40px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            min-width: 150px;
+            z-index: 1000;
+        }
+
+        .menu-action {
+            display: block;
+            padding: 12px 16px;
+            color: #4a5568;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .menu-action:hover {
+            background: #f7fafc;
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top-color: #1e88e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-nav {
+                display: none;
+            }
+
+            .tab-section {
+                padding: 0 16px;
+            }
+
+            .search-section {
+                padding: 0 16px 16px;
+            }
+
+            .search-left {
+                flex-direction: column;
+            }
+
+            .table-header {
+                display: none;
+            }
+
+            .class-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 16px;
+            }
+
+            .class-info-left,
+            .class-info-right {
+                width: 100%;
+            }
+
+            .class-stats {
+                margin-top: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <div class="header-content">
+        <div class="logo">
+            <img th:src="@{/assets/img/logo.png}" alt="OMR Logo" style="height: 40px;">
+            <span>OMR System</span>
+        </div>
+        <div class="nav-menu">
+            <a class="nav-item" th:classappend="${currentPath == '/student_home' ? 'active' : ''}" href="/student_home">
+                <p>Tổng quan</p>
+                <div class="nav-indicator"></div>
+            </a>
+            <a class="nav-item" th:classappend="${currentPath == '/student_class' ? 'active' : ''}" href="/student_class">
+                <p>Lớp học</p>
+                <div class="nav-indicator"></div>
+            </a>
+        </div>
+        <div class="user-menu" id="user-menu">
+            <div class="user-info">
+                <div class="user-avatar" th:style="'background-image: url(' + ${user.avatarUrl} + ')'"></div>
+                <div class="user-details">
+                    <span class="user-name" th:text="${user.fullName}">Nguyễn Văn An</span>
+                    <span class="user-role"
+                          th:text="${#strings.equalsIgnoreCase(user.role, 'student') or #strings.equalsIgnoreCase(user.role, 'học sinh') ? 'Học sinh' : 'Giáo viên'}">
+                        Học sinh
+                    </span>
+                </div>
+            </div>
+            <div class="dropdown-menu">
+                <a href="/profile">Thông tin cá nhân</a>
+                <a href="/logout">Đăng xuất</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-container">
+    <div class="content-wrapper">
+        <div class="content">
+            <!-- Tab Section -->
+            <div class="tab-section">
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active">Lớp của bạn</button>
+                        <button class="tab-btn inactive">Lớp đang chờ</button>
+                        <button class="tab-btn inactive">Lớp đã ẩn</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-container">
+                    <div class="search-left">
+                        <div class="search-input">
+                            <input type="text" placeholder="Tìm kiếm...">
+                        </div>
+                        <div class="sort-select">
+                            <select>
+                                <option>Sắp xếp...</option>
+                                <option>Tên A-Z</option>
+                                <option>Tên Z-A</option>
+                                <option>Mới nhất</option>
+                                <option>Cũ nhất</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="find-class-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                        <span>Tìm lớp học</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Header -->
+            <div class="table-header" id="approved-table-header">
+                <div class="header-column name">Tên lớp</div>
+                <div class="header-column info">
+                    <div class="header-stat">Số bài đã thi</div>
+                    <div class="header-stat">Tài liệu</div>
+                </div>
+                <div class="header-column menu-placeholder"></div>
+            </div>
+
+            <!-- Class List: Lớp của bạn -->
+            <div class="class-list" id="approved-class-list">
+                <div class="class-item" th:each="clazz,iterStat : ${classList}" th:onclick="'viewClass(' + ${clazz.classId} + ')'">
+                    <div class="class-info-left">
+                        <div class="class-details">
+                            <p class="class-name" th:text="${clazz.className}">Tên lớp</p>
+                            <div class="class-code">Mã lớp • <span th:text="${clazz.classCode}">CODE</span></div>
+                        </div>
+                    </div>
+                    <div class="class-info-stats">
+                        <div class="stat-item"><p th:text="${clazz.soBaiDaThi}">0</p></div>
+                        <div class="stat-item"><p th:text="${clazz.soTaiLieu}">0</p></div>
+                    </div>
+                    <div class="class-menu">
+                        <button class="menu-btn" th:onclick="'event.stopPropagation(); showMenu(' + ${clazz.classId} + ')'">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                            </svg>
+                        </button>
+                        <div class="menu-dropdown" style="display:none; position:absolute; right:0; top:40px; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); min-width:150px; z-index:1000;">
+                            <a href="#" class="menu-action" onclick="event.stopPropagation(); viewClassDetail('[[${clazz.classId}]]')">Xem chi tiết</a>
+                            <a href="#" class="menu-action" onclick="event.stopPropagation(); leaveClass('[[${clazz.classId}]]')">Rời lớp</a>
+                            <a href="#" class="menu-action" onclick="event.stopPropagation(); hideClass('[[${clazz.classId}]]')">Ẩn lớp</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Class List: Lớp đang chờ -->
+            <div class="class-list" id="pending-class-list" style="display:none">
+                <div th:if="${pendingClassList.size() == 0}" class="empty-state">
+                    <div class="empty-icon">😕</div>
+                    <div class="empty-text">Không có lớp nào đang chờ</div>
+                </div>
+                <div class="class-item" th:each="clazz,iterStat : ${pendingClassList}" th:onclick="'viewClass(' + ${clazz.id} + ')'">
+                    <div class="class-info-left">
+                        <div class="class-details">
+                            <p class="class-name" th:text="${clazz.className}">Tên lớp</p>
+                            <div class="class-code">Mã lớp • <span th:text="${clazz.classCode}">CODE</span></div>
+                        </div>
+                    </div>
+                    <div class="class-menu">
+                        <button class="menu-btn" th:onclick="'event.stopPropagation(); showMenu(' + ${clazz.id} + ')'">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                            </svg>
+                        </button>
+                        <div class="menu-dropdown" style="display:none; position:absolute; right:0; top:40px; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); min-width:150px; z-index:1000;">
+                            <a href="#" class="menu-action" onclick="event.stopPropagation(); viewClassDetail('[[${clazz.id}]]')">Xem chi tiết</a>
+                            <a href="#" class="menu-action" onclick="event.stopPropagation(); leaveClass('[[${clazz.id}]]')">Rời lớp</a>
+                            <a href="#" class="menu-action" onclick="event.stopPropagation(); hideClass('[[${clazz.id}]]')">Ẩn lớp</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Class List: Lớp đã ẩn -->
+            <div class="class-list" id="hidden-class-list" style="display:none">
+                <div th:if="${hiddenClassList.size() == 0}" class="empty-state">
+                    <div class="empty-icon">🙈</div>
+                    <div class="empty-text">Không có lớp nào đã ẩn</div>
+                </div>
+                <div class="class-item" th:each="clazz,iterStat : ${hiddenClassList}" th:onclick="'viewClass(' + ${clazz.id} + ')'">
+                    <div class="class-info-left">
+                        <div class="class-details">
+                            <p class="class-name" th:text="${clazz.className}">Tên lớp</p>
+                            <div class="class-code">Mã lớp • <span th:text="${clazz.classCode}">CODE</span></div>
+                        </div>
+                    </div>
+                    <div class="menu-dropdown" style="display:none; position:absolute; right:0; top:40px; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); min-width:150px; z-index:1000;">
+                        <a href="#" class="menu-action" onclick="event.stopPropagation(); viewClassDetail('[[${clazz.id}]]')">Xem chi tiết</a>
+                        <a href="#" class="menu-action" onclick="event.stopPropagation(); leaveClass('[[${clazz.id}]]')">Rời lớp</a>
+                        <a href="#" class="menu-action" onclick="event.stopPropagation(); hideClass('[[${clazz.id}]]')">Ẩn lớp</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // Dropdown menu logic
+    document.querySelectorAll('.menu-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // Ẩn tất cả dropdown khác
+            document.querySelectorAll('.menu-dropdown').forEach(function(drop) {
+                drop.style.display = 'none';
+            });
+            // Hiện dropdown của class này
+            var dropdown = btn.parentElement.querySelector('.menu-dropdown');
+            if (dropdown) {
+                dropdown.style.display = 'block';
+            }
+        });
+    });
+    // Ẩn dropdown khi click ngoài
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.menu-dropdown').forEach(function(drop) {
+            drop.style.display = 'none';
+        });
+    });
+
+    function viewClassDetail(classId) {
+        window.location.href = '/class/' + classId; // Cần có endpoint chi tiết lớp
+    }
+    function leaveClass(classId) {
+        if (confirm('Bạn có chắc muốn rời lớp này?')) {
+            fetch('/student/class/leave/' + classId, {method: 'POST'})
+                .then(res => {
+                    if (res.ok) location.reload();
+                    else alert('Không thể rời lớp!');
+                });
+        }
+    }
+    function hideClass(classId) {
+        if (confirm('Bạn muốn ẩn lớp này?')) {
+            fetch('/student/class/hide/' + classId, {method: 'POST'})
+                .then(res => {
+                    if (res.ok) location.reload();
+                    else alert('Không thể ẩn lớp!');
+                });
+        }
+    }
+
+    // Search functionality
+    const searchInput = document.querySelector('.search-input input');
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const classItems = document.querySelectorAll('.class-item');
+
+        classItems.forEach(item => {
+            const className = item.querySelector('.class-name').textContent.toLowerCase();
+            if (className.includes(searchTerm)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+
+    // Sort functionality
+    const sortSelect = document.querySelector('.sort-select select');
+    sortSelect.addEventListener('change', function(e) {
+        const sortValue = e.target.value;
+        alert('Đang sắp xếp theo: ' + sortValue);
+        // Implement sorting logic here
+    });
+
+    // Find class button
+    const findClassBtn = document.querySelector('.find-class-btn');
+    findClassBtn.addEventListener('click', function() {
+        const classCode = prompt('Nhập mã lớp học để tham gia:');
+        if (classCode) {
+            alert('Đang tìm lớp học với mã: ' + classCode);
+            // Implement join class logic here
+        }
+    });
+
+    // Tab switching
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const approvedList = document.getElementById('approved-class-list');
+    const pendingList = document.getElementById('pending-class-list');
+    const hiddenList = document.getElementById('hidden-class-list');
+    const tableHeader = document.getElementById('approved-table-header');
+    tabButtons.forEach((btn, idx) => {
+        btn.addEventListener('click', function() {
+            tabButtons.forEach((b, i) => {
+                if (i === idx) {
+                    b.classList.add('active');
+                    b.classList.remove('inactive');
+                } else {
+                    b.classList.remove('active');
+                    b.classList.add('inactive');
+                }
+            });
+            if (idx === 0) {
+                approvedList.style.display = 'block';
+                pendingList.style.display = 'none';
+                hiddenList.style.display = 'none';
+                tableHeader.style.display = 'flex';
+            } else if (idx === 1) {
+                approvedList.style.display = 'none';
+                pendingList.style.display = 'block';
+                hiddenList.style.display = 'none';
+                tableHeader.style.display = 'none';
+            } else {
+                approvedList.style.display = 'none';
+                pendingList.style.display = 'none';
+                hiddenList.style.display = 'block';
+                tableHeader.style.display = 'none';
+            }
+        });
+    });
+</script>
+</body>
+</html>

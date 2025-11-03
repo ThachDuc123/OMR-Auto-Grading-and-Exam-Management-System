@@ -24,6 +24,13 @@ import java.security.Principal;
 import com.example.dat301mk.entity.dto.ClassInfoDTO;
 import com.example.dat301mk.service.StudentService;
 import com.example.dat301mk.entity.dto.ResultInfoDTO;
+import com.example.dat301mk.repository.ClassesRepository;
+import com.example.dat301mk.entity.Classes;
+import com.example.dat301mk.repository.ClassMemberRepository;
+import com.example.dat301mk.entity.ClassMember;
+import com.example.dat301mk.entity.dto.ClassStudentStatDTO;
+import com.example.dat301mk.repository.OmrSheetRepository;
+import com.example.dat301mk.repository.TestVersionRepository;
 
 
 @Controller
@@ -42,6 +49,17 @@ public class MainController {
     private PasswordResetTokenRepository passwordResetTokenRepository;
     @Autowired
     private org.springframework.mail.javamail.JavaMailSender mailSender;
+
+    @Autowired
+    private ClassesRepository classesRepository;
+
+    @Autowired
+    private ClassMemberRepository classMemberRepository;
+
+    @Autowired
+    private OmrSheetRepository omrSheetRepository;
+    @Autowired
+    private TestVersionRepository testVersionRepository;
 
     @GetMapping("/")
     public String index() {
@@ -172,16 +190,34 @@ public class MainController {
         return "overview";
     }
 
-    @GetMapping("/class")
+    @GetMapping("/student_class")
     public String classPage(Model model, Principal principal) {
         String username = principal != null ? principal.getName() : null;
         Users user = null;
+        List<ClassStudentStatDTO> classList = List.of();
+        List<Classes> pendingClassList = List.of();
+        List<Classes> hiddenClassList = List.of();
         if (username != null) {
             user = userService.findByUsername(username);
+            final Users finalUser = user;
+            List<ClassMember> classMembers = classMemberRepository.findByStudentAndStatusAndIsHidden(finalUser, "approved", false);
+            classList = classMembers.stream().map(cm -> {
+                Classes clazz = cm.getClasses();
+                int soBaiDaThi = omrSheetRepository.countByTest_Classes_IdAndStudent_Id(clazz.getId(), Long.valueOf(finalUser.getId()));
+                int soTaiLieu = testVersionRepository.countByTest_Classes_Id(clazz.getId());
+                return new ClassStudentStatDTO(clazz.getId(), clazz.getClassName(), clazz.getClassCode(), soBaiDaThi, soTaiLieu);
+            }).toList();
+            List<ClassMember> pendingMembers = classMemberRepository.findByStudentAndStatus(finalUser, "pending");
+            pendingClassList = pendingMembers.stream().map(ClassMember::getClasses).toList();
+            List<ClassMember> hiddenMembers = classMemberRepository.findByStudentAndStatusAndIsHidden(finalUser, "approved", true);
+            hiddenClassList = hiddenMembers.stream().map(ClassMember::getClasses).toList();
         }
         model.addAttribute("user", user);
-        model.addAttribute("currentPath", "/class");
-        return "class";
+        model.addAttribute("currentPath", "/student_class");
+        model.addAttribute("classList", classList);
+        model.addAttribute("pendingClassList", pendingClassList);
+        model.addAttribute("hiddenClassList", hiddenClassList);
+        return "student_class";
     }
 
 }

@@ -51,5 +51,7 @@ public class Users {
     @Column(name = "is_deleted",insertable = false)
     private boolean deleted;
 
-
+    public int getId() {
+        return userId;
+    }
 }

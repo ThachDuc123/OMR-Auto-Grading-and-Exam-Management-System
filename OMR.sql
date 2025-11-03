@@ -322,3 +322,13 @@ INSERT INTO results (sheet_id, student_id, test_id, total_correct, total_wrong, 
 INSERT INTO results (sheet_id, student_id, test_id, total_correct, total_wrong, total_blank, total_score, max_score, graded_by, published) VALUES (2, 5, 1, 2, 3, 0, 2, 5, 2, TRUE);
 INSERT INTO results (sheet_id, student_id, test_id, total_correct, total_wrong, total_blank, total_score, max_score, graded_by, published) VALUES (3, 6, 2, 4, 1, 0, 4, 5, 3, TRUE);
 INSERT INTO results (sheet_id, student_id, test_id, total_correct, total_wrong, total_blank, total_score, max_score, graded_by, published) VALUES (4, 7, 1, 3, 2, 0, 3, 5, 2, TRUE);
+
+-- Thêm cột status và is_hidden cho bảng class_members nếu chưa có
+ALTER TABLE class_members ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'approved';
+ALTER TABLE class_members ADD COLUMN is_hidden BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Đảm bảo các lớp đã tham gia đều có status = 'approved' và is_hidden = false
+-- (Bạn có thể sửa điều kiện WHERE cho phù hợp với từng học sinh hoặc từng lớp)
+UPDATE class_members SET status = 'approved' WHERE status IS NULL OR status = '';
+UPDATE class_members SET is_hidden = false WHERE is_hidden IS NULL;
+

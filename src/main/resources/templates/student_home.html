@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang chủ - Hệ thống OMR</title>
 
+    <link th:href="@{/assets/img/logo.png}" rel="icon">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
     <style>
@@ -50,17 +52,6 @@
             color: #667eea;
         }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-        }
 
         .user-menu {
             position: relative;
@@ -524,7 +515,7 @@
                 <p>Tổng quan</p>
                 <div class="nav-indicator"></div>
             </a>
-            <a class="nav-item" th:classappend="${currentPath == '/class' ? 'active' : ''}" href="/class">
+            <a class="nav-item" th:classappend="${currentPath == '/student_class' ? 'active' : ''}" href="/student_class">
                 <p>Lớp học</p>
                 <div class="nav-indicator"></div>
             </a>

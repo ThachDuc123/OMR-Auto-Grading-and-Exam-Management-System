@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface ClassMemberRepository extends JpaRepository<ClassMember, Long> {
     List<ClassMember> findByStudent(Users student);
+    List<ClassMember> findByStudentAndStatus(Users student, String status);
+    List<ClassMember> findByStudentAndStatusAndIsHidden(Users student, String status, Boolean isHidden);
 }
-
