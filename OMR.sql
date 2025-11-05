@@ -5,6 +5,7 @@ USE OMR_AUTO;
 -- ---------- USERS ----------
 CREATE TABLE users (
                        user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                       id_omr CHAR(6) UNIQUE,
                        username VARCHAR(100) UNIQUE NOT NULL,
                        email VARCHAR(100) UNIQUE NOT NULL,
                        password VARCHAR(255),
@@ -15,6 +16,27 @@ CREATE TABLE users (
                        is_deleted BOOLEAN DEFAULT FALSE
 );
 
+-- TỰ TẠO id_omr CHO HỌC SINH DẠNG 6 SỐ TĂNG TUẦN TỰ
+DELIMITER $$
+
+CREATE TRIGGER trg_generate_id_omr
+    BEFORE INSERT ON users
+    FOR EACH ROW
+BEGIN
+    IF NEW.role = 'student' THEN
+        SET NEW.id_omr = (
+            SELECT LPAD(
+                           IFNULL(MAX(CAST(id_omr AS UNSIGNED)), 0) + 1,
+                           6,
+                           '0'
+                   )
+            FROM users
+            WHERE role = 'student'
+        );
+    END IF;
+END $$
+
+DELIMITER ;
 -- =======================================================
 -- SUBJECTS
 -- =======================================================
@@ -72,20 +94,23 @@ CREATE TABLE tests (
 -- =======================================================
 -- TEST VERSIONS (MÃ ĐỀ)
 -- =======================================================
-CREATE TABLE test_versions (
-                               version_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                               test_id BIGINT UNSIGNED NOT NULL,
-                               version_code VARCHAR(100) NOT NULL,
-                               pdf_path VARCHAR(512) NOT NULL,
-                               csv_answer_path VARCHAR(512),
-                               is_answer_key BOOLEAN DEFAULT FALSE,
-                               uploaded_by INT UNSIGNED NOT NULL,
-                               uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                               description TEXT,
-                               FOREIGN KEY (test_id) REFERENCES tests(test_id) ON DELETE CASCADE,
-                               FOREIGN KEY (uploaded_by) REFERENCES users(user_id) ON DELETE CASCADE,
-                               UNIQUE KEY ux_test_version (test_id, version_code)
+CREATE TABLE IF NOT EXISTS test_versions (
+                                             version_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                                             test_id BIGINT UNSIGNED NOT NULL,
+                                             version_code VARCHAR(100) NOT NULL,
+                                             pdf_path VARCHAR(512) NOT NULL,
+                                             csv_answer_path VARCHAR(512),
+                                             is_answer_key BOOLEAN DEFAULT FALSE,
+                                             uploaded_by INT UNSIGNED NOT NULL,
+                                             uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                             description TEXT,
+                                             file_path VARCHAR(512),
+                                             answer_path VARCHAR(512),
+                                             FOREIGN KEY (test_id) REFERENCES tests(test_id) ON DELETE CASCADE,
+                                             FOREIGN KEY (uploaded_by) REFERENCES users(user_id) ON DELETE CASCADE,
+                                             UNIQUE KEY ux_test_version (test_id, version_code)
 );
+
 
 -- =======================================================
 -- CLASS TESTS (GÁN ĐỀ CHO LỚP)
@@ -120,8 +145,7 @@ CREATE TABLE omr_sheets (
                             FOREIGN KEY (test_id) REFERENCES tests(test_id) ON DELETE CASCADE,
                             FOREIGN KEY (version_id) REFERENCES test_versions(version_id) ON DELETE RESTRICT,
                             FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE,
-                            FOREIGN KEY (uploaded_by) REFERENCES users(user_id) ON DELETE SET NULL,
-                            INDEX idx_sheet_student_test (student_id, test_id)
+                            FOREIGN KEY (uploaded_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
 -- =======================================================
@@ -198,11 +222,11 @@ CREATE TABLE password_reset_token (
 -- USERS
 INSERT INTO users (username, email, password, full_name, avatar_url, role)
 VALUES
-    ('admin','admin@gmail.com','admin123','Administrator','/img/admin.png','admin'),
-    ('teacher01','teacher01@example.com','teach123','Nguyễn Văn Toán','/img/teacher.png','teacher'),
-    ('teacher02','teacher02@example.com','teach456','Phạm Thị Sinh','/img/teacher.png','teacher'),
-    ('student01','student01@example.com','stu123','Ngô Minh Học','/img/student.png','student'),
-    ('student02','student02@example.com','stu456','Lê Thu Học','/img/student.png','student');
+    ('admin','admin@gmail.com','admin123','Administrator','https://png.pngtree.com/png-clipart/20240917/original/pngtree-administrator-admin-avatar-png-image_16031562.png','admin'),
+    ('teacher01','teacher01@example.com','teach123','Nguyễn Văn Toán','https://thumbs.dreamstime.com/b/avatar-teacher-book-his-hands-d-style-adorable-cartoon-310669103.jpg','teacher'),
+    ('teacher02','teacher02@example.com','teach456','Phạm Thị Sinh','https://t4.ftcdn.net/jpg/08/23/95/89/360_F_823958944_1c9covIC7Tl7eyJtWoTiXc0L4vP6f43q.jpg','teacher'),
+    ('student01','student01@example.com','stu123','Ngô Minh Học','/https://thumbs.dreamstime.com/b/d-icon-avatar-student-man-reading-book-school-concept-education-learning-isolated-transparent-png-background-cartoon-352289965.jpg','student'),
+    ('student02','student02@example.com','stu456','Lê Thu Học','https://png.pngtree.com/png-clipart/20240321/original/pngtree-avatar-job-student-flat-portrait-of-man-png-image_14639684.png','student');
 
 -- SUBJECTS
 INSERT INTO subjects (subject_code, subject_name, description)
@@ -257,5 +281,3 @@ INSERT INTO results (sheet_id, student_id, test_id, total_correct, total_wrong, 
 VALUES
     (1,4,1,5,0,0,5,5,2,TRUE),
     (2,5,1,3,2,0,3,5,2,TRUE);
-ALTER TABLE test_versions ADD COLUMN file_path VARCHAR(512);
-ALTER TABLE test_versions ADD COLUMN answer_path VARCHAR(512);

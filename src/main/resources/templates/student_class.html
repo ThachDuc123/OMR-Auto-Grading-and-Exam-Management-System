@@ -33,10 +33,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 30px;
+            padding: 0 24px;
             height: 100%;
-            max-width: 1920px;
-            margin: 0 auto;
+            max-width: 100%;
         }
 
         .logo {
@@ -583,10 +582,6 @@
             .class-info-right {
                 width: 100%;
             }
-
-            .class-stats {
-                margin-top: 16px;
-            }
         }
     </style>
 </head>
@@ -607,8 +602,12 @@
                 <p>Lớp học</p>
                 <div class="nav-indicator"></div>
             </a>
-            <a class="nav-item" th:classappend="${currentPath == '/teacher_quiz' ? 'active' : ''}" href="/teacher_quiz">
+                <a class="nav-item" th:if="${#strings.equalsIgnoreCase(user.role, 'teacher') or #strings.equalsIgnoreCase(user.role, 'giáo viên')}" th:classappend="${currentPath == '/teacher_quiz' ? 'active' : ''}" href="/teacher_quiz">
                 <p>Học liệu</p>
+                <div class="nav-indicator"></div>
+            </a>
+            <a class="nav-item" th:if="${#strings.equalsIgnoreCase(user.role, 'teacher') or #strings.equalsIgnoreCase(user.role, 'giáo viên')}" th:classappend="${currentPath == '/scan_omr' ? 'active' : ''}" href="/scan_omr">
+                <p>Scanner</p>
                 <div class="nav-indicator"></div>
             </a>
         </div>

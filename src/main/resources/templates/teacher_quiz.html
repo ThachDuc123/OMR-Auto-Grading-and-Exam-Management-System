@@ -515,8 +515,12 @@
                 <p>Lớp học</p>
                 <div class="nav-indicator"></div>
             </a>
-            <a class="nav-item" th:classappend="${currentPath == '/teacher_quiz' ? 'active' : ''}" href="/teacher_quiz">
+            <a class="nav-item" th:if="${#strings.equalsIgnoreCase(user.role, 'teacher') or #strings.equalsIgnoreCase(user.role, 'giáo viên')}" th:classappend="${currentPath == '/teacher_quiz' ? 'active' : ''}" href="/teacher_quiz">
                 <p>Học liệu</p>
+                <div class="nav-indicator"></div>
+            </a>
+            <a class="nav-item" th:if="${#strings.equalsIgnoreCase(user.role, 'teacher') or #strings.equalsIgnoreCase(user.role, 'giáo viên')}" th:classappend="${currentPath == '/scan_omr' ? 'active' : ''}" href="/scan_omr">
+                <p>Scanner</p>
                 <div class="nav-indicator"></div>
             </a>
         </div>
@@ -672,32 +676,38 @@
                                 </div>
 
                                 <div style="display:flex; gap:8px; align-items:center;">
-                                    <!-- View PDF for version if available, otherwise fall back to test PDF -->
-                                    <a th:if="${version.filePath != null}" th:href="@{'/version/pdf/' + ${version.id}}" target="_blank" style="text-decoration:none;">
+                                    <!-- View PDF for version or fallback to test PDF -->
+                                    <a th:if="${version.filePath != null || version.pdfPath != null}" th:href="@{'/version/pdf/' + ${version.id}}" target="_blank" style="text-decoration:none;">
                                         <span class="view-btn" title="Xem PDF" aria-hidden="true">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v13a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7L12 2zM11 18H9v-6h2v6zm4 0h-2v-4h2v4zM7 12H5V9h2v3z"/></svg>
                                         </span>
                                     </a>
-                                    <a th:if="${version.filePath == null and testByCode[testEntry.key] != null and testByCode[testEntry.key].pdfPath != null}" th:href="@{'/test/pdf/' + ${testByCode[testEntry.key].id}}" target="_blank" style="text-decoration:none;">
+                                    <a th:if="${(version.filePath == null && version.pdfPath == null) and testByCode[testEntry.key] != null and testByCode[testEntry.key].pdfPath != null}" th:href="@{'/test/pdf/' + ${testByCode[testEntry.key].id}}" target="_blank" style="text-decoration:none;">
                                         <span class="view-btn" title="Xem PDF (từ đề gốc)" aria-hidden="true">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v13a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7L12 2zM11 18H9v-6h2v6zm4 0h-2v-4h2v4zM7 12H5V9h2v3z"/></svg>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v13a2 2 0 0 0 2 2h6v-9h4v9h6a2 2 0 0 0 2-2V7L12 2zM11 18H9v-6h2v6zm4 0h-2v-4h2v4zM7 12H5V9h2v3z"/></svg>
                                         </span>
                                     </a>
 
-                                    <!-- View answer (CSV) if available on the Test level -->
-                                    <a th:if="${testByCode[testEntry.key] != null and testByCode[testEntry.key].csvAnswerPath != null}" th:href="@{'/test/answer/' + ${testByCode[testEntry.key].id}}" target="_blank" style="text-decoration:none;">
-                                        <span class="view-btn" title="Xem đáp án" aria-hidden="true">
+                                    <!-- View answer at version level (answer_path or csv_answer_path) -->
+                                    <a th:if="${version.answerPath != null || version.csvAnswerPath != null}" th:href="@{'/version/answer/' + ${version.id}}" target="_blank" style="text-decoration:none;">
+                                        <span class="view-btn" title="Xem đáp án (mã đề)" aria-hidden="true">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v13a2 2 0 0 0 2 2h6v-9h4v9h6a2 2 0 0 0 2-2V7L12 2z"/></svg>
+                                        </span>
+                                    </a>
+                                    <!-- Or fallback to test-level answer -->
+                                    <a th:if="${(version.answerPath == null && version.csvAnswerPath == null) and testByCode[testEntry.key] != null and testByCode[testEntry.key].csvAnswerPath != null}" th:href="@{'/test/answer/' + ${testByCode[testEntry.key].id}}" target="_blank" style="text-decoration:none;">
+                                        <span class="view-btn" title="Xem đáp án (đề gốc)" aria-hidden="true">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v13a2 2 0 0 0 2 2h6v-9h4v9h6a2 2 0 0 0 2-2V7L12 2z"/></svg>
                                         </span>
                                     </a>
 
-                                    <!-- Download buttons: test PDF or version file -->
-                                    <a th:if="${version.filePath != null}" th:href="@{'/version/pdf/' + ${version.id}}" th:attr="download" style="text-decoration:none;">
+                                    <!-- Download buttons: use static download attribute to avoid Thymeleaf assignation errors -->
+                                    <a th:if="${version.filePath != null || version.pdfPath != null}" th:href="@{'/version/pdf/' + ${version.id}}" download style="text-decoration:none;">
                                         <span class="view-btn" title="Tải PDF" aria-hidden="true">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.34v4h6.66V9h3.34L12 2z"/></svg>
                                         </span>
                                     </a>
-                                    <a th:if="${version.filePath == null and testByCode[testEntry.key] != null and testByCode[testEntry.key].pdfPath != null}" th:href="@{'/test/pdf/' + ${testByCode[testEntry.key].id}}" th:attr="download" style="text-decoration:none;">
+                                    <a th:if="${(version.filePath == null && version.pdfPath == null) and testByCode[testEntry.key] != null and testByCode[testEntry.key].pdfPath != null}" th:href="@{'/test/pdf/' + ${testByCode[testEntry.key].id}}" download style="text-decoration:none;">
                                         <span class="view-btn" title="Tải PDF (từ đề gốc)" aria-hidden="true">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.34v4h6.66V9h3.34L12 2z"/></svg>
                                         </span>
@@ -705,6 +715,7 @@
                                 </div>
                             </div>
                         </div>
+                    <!-- ...existing code... -->
                     </div>
                 </div>
             </div>
@@ -714,10 +725,10 @@
 </div>
 
 <script>
-    // Toggle user dropdown
-    function toggleUserDropdown() {
-        alert('Chức năng menu người dùng');
-    }
+    // Toggle user dropdown like student_home
+    document.getElementById('user-menu')?.addEventListener('click', function() {
+        this.classList.toggle('active');
+    });
 
     // Toggle folder (subject/test)
     function toggleFolder(id) {

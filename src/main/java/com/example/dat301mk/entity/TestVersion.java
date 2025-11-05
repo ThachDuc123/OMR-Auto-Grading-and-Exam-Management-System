@@ -26,8 +26,20 @@ public class TestVersion {
     @Column(name = "is_answer_key", nullable = false)
     private Boolean isAnswerKey = false;
 
+    // New: preferred modern column for PDF path
     @Column(name = "file_path", length = 512)
     private String filePath;
+
+    // New: legacy columns existing in sample DB
+    @Column(name = "pdf_path", length = 512)
+    private String pdfPath; // legacy support
+
+    @Column(name = "csv_answer_path", length = 512)
+    private String csvAnswerPath; // legacy support for answers
+
+    // New: modern column for answer path
+    @Column(name = "answer_path", length = 512)
+    private String answerPath;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploaded_by")
@@ -35,5 +47,4 @@ public class TestVersion {
 
     @Column(name = "uploaded_at")
     private Instant uploadedAt;
-
 }

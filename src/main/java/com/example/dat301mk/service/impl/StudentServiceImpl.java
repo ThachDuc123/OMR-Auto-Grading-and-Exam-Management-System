@@ -51,7 +51,15 @@ public class StudentServiceImpl implements StudentService {
             List<Test> tests = testRepository.findByClasses(classes);
             List<Result> results = resultRepository.findByStudent(student)
                     .stream()
-                    .filter(result -> result.getTest().getClasses().equals(classes))
+                    .filter(result -> {
+                        Test resTest = result.getTest();
+                        if (resTest == null) return false;
+                        Classes testClasses = resTest.getClasses();
+                        if (classes == null || testClasses == null) return false;
+                        Long classId = classes.getId();
+                        Long testClassId = testClasses.getId();
+                        return classId != null && classId.equals(testClassId);
+                    })
                     .collect(Collectors.toList());
 
             double averageScore = results.stream()
@@ -60,11 +68,11 @@ public class StudentServiceImpl implements StudentService {
                     .orElse(0.0);
 
             return new ClassInfoDTO(
-                    classes.getId(),
-                    classes.getClassCode(),
-                    classes.getClassName(),
-                    classes.getTeacher().getFullName(),
-                    tests.size(),
+                    classes != null ? classes.getId() : null,
+                    classes != null ? classes.getClassCode() : null,
+                    classes != null ? classes.getClassName() : null,
+                    (classes != null && classes.getTeacher() != null) ? classes.getTeacher().getFullName() : null,
+                    tests != null ? tests.size() : 0,
                     averageScore
             );
         }).collect(Collectors.toList());
@@ -80,16 +88,32 @@ public class StudentServiceImpl implements StudentService {
         List<Result> results = resultRepository.findByStudent(student);
 
         return results.stream()
-                .sorted((r1, r2) -> r2.getGradedAt().compareTo(r1.getGradedAt()))
+                .sorted((r1, r2) -> {
+                    if (r1.getGradedAt() == null && r2.getGradedAt() == null) return 0;
+                    if (r1.getGradedAt() == null) return 1; // nulls last
+                    if (r2.getGradedAt() == null) return -1;
+                    return r2.getGradedAt().compareTo(r1.getGradedAt());
+                })
                 .limit(limit)
-                .map(result -> new ResultInfoDTO(
-                        result.getTest().getSubject().getSubjectName(), // Fix: get subject name as String
-                        result.getTest().getTitle(),
-                        result.getGradedAt(),
-                        result.getTotalScore(),
-                        result.getMaxScore(),
-                        result.getId()
-                ))
+                .map(result -> {
+                    Test test = result.getTest();
+                    String subjectName = null;
+                    String title = null;
+                    if (test != null) {
+                        title = test.getTitle();
+                        if (test.getSubject() != null) {
+                            subjectName = test.getSubject().getSubjectName();
+                        }
+                    }
+                    return new ResultInfoDTO(
+                            subjectName,
+                            title,
+                            result.getGradedAt(),
+                            result.getTotalScore(),
+                            result.getMaxScore(),
+                            result.getId()
+                    );
+                })
                 .collect(Collectors.toList());
     }
 }

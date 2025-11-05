@@ -21,6 +21,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.dat301mk.entity.TestVersion;
 import com.example.dat301mk.entity.Subject;
 import com.example.dat301mk.repository.SubjectRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 
 @Controller
@@ -86,6 +89,12 @@ public class MainController {
     @Autowired
     private SubjectRepository subjectRepository;
 
+    private boolean hasRole(String role) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        return auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(role));
+    }
+
     @GetMapping("/")
     public String index() {
         return "redirect:/home";
@@ -98,6 +107,10 @@ public class MainController {
 
     @GetMapping("/student_home")
     public String student_home(Model model, Principal principal) {
+        // If teacher tries to access, redirect to student_class
+        if (hasRole("ROLE_TEACHER")) {
+            return "redirect:/student_class";
+        }
         String username = principal != null ? principal.getName() : null;
         Users user = null;
         if (username != null) {
@@ -247,6 +260,10 @@ public class MainController {
 
     @GetMapping("/teacher_quiz")
     public String teacherQuizPage(Model model, Principal principal) {
+        // If student tries to access, redirect to student_home
+        if (hasRole("ROLE_STUDENT")) {
+            return "redirect:/student_home";
+        }
         String username = principal != null ? principal.getName() : null;
         Users user = null;
         List<Test> testList = List.of();
@@ -400,11 +417,16 @@ public class MainController {
     @GetMapping("/version/pdf/{versionId}")
     public ResponseEntity<Resource> getVersionPdf(@PathVariable Long versionId) {
         TestVersion version = testVersionRepository.findById(versionId).orElse(null);
-        if (version == null || version.getFilePath() == null) {
+        if (version == null) {
+            return ResponseEntity.notFound().build();
+        }
+        // Support both columns: file_path (modern) and pdf_path (legacy)
+        String pathStr = version.getFilePath() != null ? version.getFilePath() : version.getPdfPath();
+        if (pathStr == null) {
             return ResponseEntity.notFound().build();
         }
         try {
-            Path filePath = Paths.get("src/main/resources/static" + version.getFilePath());
+            Path filePath = Paths.get("src/main/resources/static" + pathStr);
             Resource resource = new UrlResource(filePath.toUri());
             if (!resource.exists()) return ResponseEntity.notFound().build();
             return ResponseEntity.ok()
@@ -414,6 +436,75 @@ public class MainController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping("/version/answer/{versionId}")
+    public ResponseEntity<Resource> getVersionAnswer(@PathVariable Long versionId) {
+        TestVersion version = testVersionRepository.findById(versionId).orElse(null);
+        if (version == null) {
+            return ResponseEntity.notFound().build();
+        }
+        // Support both modern answer_path and legacy csv_answer_path
+        String ansPath = version.getAnswerPath() != null ? version.getAnswerPath() : version.getCsvAnswerPath();
+        if (ansPath == null) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            Path filePath = Paths.get("src/main/resources/static" + ansPath);
+            Resource resource = new UrlResource(filePath.toUri());
+            if (!resource.exists()) return ResponseEntity.notFound().build();
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) contentType = "text/csv";
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filePath.getFileName() + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/scan_omr")
+    public String scanOmrPage(Model model, Principal principal) {
+        // If student tries to access, redirect to student_home
+        if (hasRole("ROLE_STUDENT")) {
+            return "redirect:/student_home";
+        }
+        String username = principal != null ? principal.getName() : null;
+        Users user = null;
+        if (username != null) {
+            user = userService.findByUsername(username);
+        }
+        // Prepare minimal test/version data for the view
+        List<Test> tests = testRepository.findAll();
+        Map<Long, List<TestVersion>> versionsByTestId = new LinkedHashMap<>();
+        for (Test t : tests) {
+            List<TestVersion> versions = testVersionRepository.findByTest(t);
+            versionsByTestId.put(t.getId(), versions);
+        }
+        // Build a simplified structure safe for Thymeleaf JS inlining
+        Map<Long, List<Map<String, Object>>> versionsByTestIdSimple = new LinkedHashMap<>();
+        for (Map.Entry<Long, List<TestVersion>> e : versionsByTestId.entrySet()) {
+            List<Map<String, Object>> simpleList = new ArrayList<>();
+            if (e.getValue() != null) {
+                for (TestVersion v : e.getValue()) {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id", v.getId());
+                    m.put("versionCode", v.getVersionCode());
+                    simpleList.add(m);
+                }
+            }
+            versionsByTestIdSimple.put(e.getKey(), simpleList);
+        }
+        // Compute 6-digit student code (zero-padded user id)
+        String studentCode = (user != null) ? String.format("%06d", user.getId()) : "";
+        model.addAttribute("user", user);
+        model.addAttribute("currentPath", "/scan_omr");
+        model.addAttribute("tests", tests);
+        model.addAttribute("versionsByTestId", versionsByTestId); // keep original if needed elsewhere
+        model.addAttribute("versionsByTestIdSimple", versionsByTestIdSimple); // used by template JS
+        model.addAttribute("studentCode", studentCode);
+        return "Scan_omr";
     }
 
 }

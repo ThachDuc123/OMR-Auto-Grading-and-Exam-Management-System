@@ -24,6 +24,9 @@ public class Users {
     @Column(name = "user_id")
     private int userId;
 
+    @Column(name = "id_omr", length = 6, unique = true)
+    private String idOmr;
+
     @Column(name = "username")
     private String username;
 
