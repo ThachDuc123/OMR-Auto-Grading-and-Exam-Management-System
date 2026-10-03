@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner - TraluAI</title>
+    <link th:href="@{/assets/img/logo.png}" rel="icon">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            color: #202227;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid #d8dcf0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1100;
+            height: 64px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            height: 100%;
+            max-width: 100%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .logo img {
+            height: 32px;
+        }
+
+        /* Navigation styles */
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #4a5568;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover {
+            background-color: #f7fafc;
+            color: #667eea;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+            background-color: #ebf4ff;
+        }
+
+        .nav-item p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .nav-indicator {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background-color: #667eea;
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-item.active .nav-indicator {
+            opacity: 1;
+        }
+
+        .user-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .user-info:hover {
+            background: #f7fafc;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .user-role {
+            font-size: 14px;
+            color: #718096;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 200px;
+            overflow: hidden;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #4a5568;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f7fafc;
+        }
+        .user-menu.active .dropdown-menu {
+            display: block;
+        }
+        /* Main Container */
+        .main-container {
+            margin-top: 64px;
+            display: flex;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* Sidebar - OMR Scanner Style */
+        .sidebar {
+            width: 400px;
+            background: white;
+            border-right: 2px solid #e0e0e0;
+            padding: 20px;
+            position: sticky;
+            top: 64px;
+            height: calc(100vh - 64px);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: 4px 0 12px rgba(0,0,0,0.08);
+        }
+
+        .scanner-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .scanner-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .scanner-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #202227;
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 28px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 8px 0;
+        }
+
+        .section-icon {
+            width: 20px;
+            height: 20px;
+            font-size: 18px;
+        }
+
+        .load-button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .load-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .load-button:active {
+            transform: translateY(0);
+        }
+
+        .status-box {
+            background: #f8f9fa;
+            border: 2px dashed #d0d5dd;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        .process-button {
+            width: 100%;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .process-button:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .process-button:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .answer-key-button {
+            width: 100%;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .answer-key-button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .settings-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .settings-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .settings-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .results-placeholder {
+            background: #f8f9fa;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .view-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .view-button {
+            width: 100%;
+            background: white;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .view-button:hover {
+            background: #f3f4f6;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .view-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .drag-mode-button {
+            width: 100%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .drag-mode-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245, 87, 108, 0.4);
+        }
+
+        .status-badge {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            z-index: 1000;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            background: white;
+        }
+
+        /* Table Header */
+        .table-header {
+            background: #efeff5;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .header-col {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12.25px;
+            font-weight: 600;
+            color: #202227;
+            cursor: pointer;
+        }
+
+        .header-col.name {
+            flex: 1;
+        }
+
+        .header-col.size {
+            width: 20%;
+        }
+
+        .header-col.modified {
+            width: 20%;
+        }
+
+        /* Main Content - Canvas Area */
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .canvas-placeholder {
+            text-align: center;
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        .canvas-placeholder-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+            background: white;
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: #f3f4f6;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .zoom-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .zoom-btn:active {
+            transform: scale(0.95);
+        }
+
+        .zoom-level {
+            padding: 8px 16px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+        }
+
+        .canvas-hint {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #imageCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: grab;
+            transform-origin: center center;
+        }
+
+        #imageCanvas.dragging {
+            cursor: grabbing;
+        }
+
+        #imageCanvas.drag-mode {
+            cursor: crosshair;
+        }
+
+        #gradedPreview {
+            transform-origin: center center;
+        }
+
+        /* Folder Item */
+        .folder-item {
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .folder-item:hover {
+            background: #f7fafc;
+        }
+
+        .folder-icon {
+            width: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+        }
+
+        .folder-name {
+            font-size: 12.25px;
+            font-weight: 600;
+            color: #1e88e5;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                display: none;
+            }
+
+            .nav-menu {
+                position: static;
+                transform: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 16px;
+            }
+
+            .progress-info {
+                display: none;
+            }
+
+            .user-name {
+                display: none;
+            }
+
+            .search-section {
+                padding: 0 16px 16px;
+            }
+
+            .breadcrumb-section {
+                padding: 16px;
+            }
+
+            .table-header {
+                padding: 16px;
+            }
+
+            .folder-item {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <div class="header-content">
+        <a class="logo">
+            <img th:src="@{/assets/img/logo.png}" alt="OMR Logo" style="height: 40px;">
+            <span>TraluAI</span>
+        </a>
+
+        <div class="nav-menu">
+            <a class="nav-item" th:if="${#strings.equalsIgnoreCase(user.role, 'student') or #strings.equalsIgnoreCase(user.role, 'học sinh')}" th:classappend="${currentPath == '/student_home' ? 'active' : ''}" href="/student_home">
+                <p>Tổng quan</p>
+                <div class="nav-indicator"></div>
+            </a>
+            <a class="nav-item" th:classappend="${currentPath == '/student_class' ? 'active' : ''}" href="/student_class">
+                <p>Lớp học</p>
+                <div class="nav-indicator"></div>
+            </a>
+            <a class="nav-item" th:if="${#strings.equalsIgnoreCase(user.role, 'teacher') or #strings.equalsIgnoreCase(user.role, 'giáo viên')}" th:classappend="${currentPath == '/teacher_quiz' ? 'active' : ''}" href= "/teacher_quiz">
+                <p>Học liệu</p>
+                <div class="nav-indicator"></div>
+            </a>
+            <a class="nav-item" th:if="${#strings.equalsIgnoreCase(user.role, 'teacher') or #strings.equalsIgnoreCase(user.role, 'giáo viên')}" th:classappend="${currentPath == '/scan_omr' ? 'active' : ''}" href="/scan_omr">
+                <p>Scanner</p>
+                <div class="nav-indicator"></div>
+            </a>
+        </div>
+
+        <div class="user-menu" id="user-menu">
+            <div class="user-info">
+                <div class="user-avatar" th:style="'background-image: url(' + ${user.avatarUrl} + ')' "></div>
+                <div class="user-details">
+                    <span class="user-name" th:text="${user.fullName}">Nguyễn Văn An</span>
+                    <span class="user-role"
+                          th:text="${#strings.equalsIgnoreCase(user.role, 'student') or #strings.equalsIgnoreCase(user.role, 'học sinh') ? 'Học sinh' : 'Giáo viên'}">
+                        Học sinh
+                    </span>
+                </div>
+            </div>
+            <div class="dropdown-menu">
+                <a href="/profile">Thông tin cá nhân</a>
+                <a href="/logout">Đăng xuất</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Container -->
+<div class="main-container">
+    <!-- Sidebar - OMR Scanner -->
+    <aside class="sidebar">
+        <div class="scanner-header">
+            <div class="scanner-icon">📄</div>
+            <h2 class="scanner-title">TraluAI Scanner</h2>
+        </div>
+
+
+        <!-- Load Image Section -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <span class="section-icon">📂</span>
+                Load Image
+            </div>
+            <button class="load-button" onclick="triggerFilePicker()">
+                📁 Chọn ảnh/PDF để chấm
+            </button>
+            <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none" />
+            <div class="status-box" id="imageStatus">No image loaded</div>
+        </div>
+
+        <!-- Process Section -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <span class="section-icon">⚙️</span>
+                Process
+            </div>
+            <label class="settings-label" for="confidenceInput">Confidence (YOLO):</label>
+            <input type="text" id="confidenceInput" class="settings-input" value="0.35" placeholder="0.35" />
+            <small style="color:#6b7280">(ngưỡng YOLO, mặc định 0.35 — chấp nhận 0,35)</small>
+            <div style="height:10px;"></div>
+        </div>
+
+        <!-- Student Info Section (needed by JS: recognizedIdInput, studentCodeInput) -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <span class="section-icon">🧑‍🎓</span>
+                Thông tin học sinh
+            </div>
+            <label class="settings-label" for="recognizedIdInput">Mã học sinh nhận dạng (6 số):</label>
+            <input type="text" id="recognizedIdInput" class="settings-input" placeholder="Ví dụ: 000123" maxlength="6" />
+        </div>
+
+        <!-- Answer Key Section -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <span class="section-icon">🔑</span>
+                Answer Key
+            </div>
+            <button class="answer-key-button" onclick="triggerAnswerCsvPicker()">
+                📋 Load .csv file
+            </button>
+            <input type="file" id="answerCsvInput" accept=".csv,.json" style="display:none" />
+            <div class="status-box" id="answerKeyStatus">No answer key loaded</div>
+            <button class="process-button" id="processBtn" disabled onclick="submitForGrading()">
+                � Chấm bài
+            </button>
+        </div>
+
+        <!-- Test/Version Selectors -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <span class="section-icon">🧪</span>
+                Chọn Đề & Mã đề
+            </div>
+            <label class="settings-label" for="testSelect">Đề thi:</label>
+            <select id="testSelect" class="settings-input">
+                <option value="">-- Chọn đề --</option>
+                <option th:each="t : ${tests}" th:value="${t.id}" th:text="${t.title + ' [' + t.testCode + ']'}"></option>
+            </select>
+            <div style="height:8px;"></div>
+            <label class="settings-label" for="versionSelect">Mã đề:</label>
+            <select id="versionSelect" class="settings-input">
+                <option value="">-- Chọn mã đề --</option>
+            </select>
+        </div>
+
+        <!-- Results Section -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <span class="section-icon">📊</span>
+                Kết quả chấm bài
+            </div>
+            <div class="results-placeholder" id="resultsDisplay">
+                Results will appear here after processing
+            </div>
+        </div>
+
+        <!-- Detailed Questions Section -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <span class="section-icon">📝</span>
+                Chi tiết từng câu
+            </div>
+            <div class="results-placeholder" id="detailsDisplay">
+                Question details will appear here after grading
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-area" style="display: flex; flex-direction: column; gap: 16px; padding: 20px;">
+            <!-- Canvas area for image -->
+            <div class="canvas-wrapper" id="canvasWrapper" style="flex: 1; min-height: 400px;">
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">➕</button>
+                    <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">➖</button>
+                    <button class="zoom-btn" onclick="fitToScreen()" title="Fit">📐</button>
+                    <div class="zoom-level" id="zoomLevel">100%</div>
+                    <button class="zoom-btn" onclick="resetView()" title="Reset">🔄</button>
+                </div>
+
+                <div class="canvas-placeholder" id="canvasPlaceholder">
+                    <div class="canvas-placeholder-icon">📄</div>
+                    <div>Load an image to get started</div>
+                </div>
+                <img id="gradedPreview" src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" style="display:none; max-width:100%; border:2px solid #e5e7eb; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1);" alt="Graded preview" />
+                <canvas id="imageCanvas" style="display: none;"></canvas>
+            </div>
+
+            <!-- Detailed results area -->
+            <div id="detailedResults" style="display:none; background:white; border-radius:12px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                <h3 style="margin:0 0 16px 0; color:#667eea; font-size:20px; display:flex; align-items:center; gap:8px;">
+                    📋 Chi tiết từng câu hỏi
+                </h3>
+                <div id="detailedResultsContent"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Status Badge -->
+<div class="status-badge" id="statusBadge">Form is valid</div>
+
+<script th:inline="javascript">
+    // Thymeleaf-provided data (safe JSON)
+    const STUDENT_CODE = /*[[${studentCode}]]*/ '';
+    const VERSIONS_BY_TEST_ID = /*[[${versionsByTestIdSimple}]]*/ {};
+</script>
+<script>
+    // ========== API Configuration ==========
+    // Khi chạy trên localhost:8081 hoặc 8082, gọi Flask API tại localhost:5000
+    // Khi chạy trên localhost:5000, gọi API tại cùng server
+    const currentPort = window.location.port;
+    const API_BASE_URL = (currentPort === '8081' || currentPort === '8082' || currentPort === '8080')
+        ? 'http://127.0.0.1:5000'  // Từ IntelliJ IDEA hoặc external server
+        : '';                       // Từ Flask (same origin)
+
+    const API_ENDPOINT = API_BASE_URL + '/api/omr/grade';
+
+    console.log('🌐 Current origin:', window.location.origin);
+    console.log('📡 API Endpoint:', API_ENDPOINT);
+
+    // Dropdown toggle like student_home
+    document.addEventListener('DOMContentLoaded', function() {
+        const userMenu = document.getElementById('user-menu');
+        if (userMenu) {
+            userMenu.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        }
+    });
+
+    // ...existing JS variables...
+    let currentZoom = 100;
+    let imageLoaded = false;
+    let isDragMode = false;
+    let canvas, ctx;
+    let panX = 0, panY = 0;
+    let isPanning = false;
+    let lastX, lastY;
+    let selectedFile = null;
+    let selectedAnswerCsv = null;
+
+    window.onload = function() {
+        canvas = document.getElementById('imageCanvas');
+        ctx = canvas.getContext('2d');
+        setupCanvasInteractions();
+        setupSelectors();
+        const fi = document.getElementById('fileInput');
+        fi.addEventListener('change', onFileSelected);
+        document.getElementById('answerCsvInput').addEventListener('change', onAnswerCsvSelected);
+
+        // Sửa text button để hiển thị đúng emoji
+        const processBtn = document.getElementById('processBtn');
+        if (processBtn) {
+            processBtn.innerHTML = '📝 Chấm bài';
+        }
+    };
+
+    function triggerFilePicker() {
+        document.getElementById('fileInput').click();
+    }
+    function triggerAnswerCsvPicker() {
+        document.getElementById('answerCsvInput').click();
+    }
+
+    function onFileSelected(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            // Hiện ảnh gốc ngay khi upload
+            const preview = document.getElementById('gradedPreview');
+            const placeholder = document.getElementById('canvasPlaceholder');
+            const canvasEl = document.getElementById('imageCanvas');
+
+            preview.src = event.target.result;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+            canvasEl.style.display = 'none';
+
+            imageLoaded = true;
+            document.getElementById('imageStatus').textContent = `Đã tải: ${file.name}`;
+            document.getElementById('imageStatus').style.background = '#d4edda';
+            document.getElementById('imageStatus').style.color = '#155724';
+            document.getElementById('processBtn').disabled = false;
+
+            // Reset zoom
+            currentZoom = 100;
+            panX = 0;
+            panY = 0;
+            applyTransform();
+
+            // Fit to screen sau khi ảnh load
+            preview.onload = function() {
+                fitToScreen();
+            };
+
+            updateStatus('Đã tải ảnh thành công', '#10b981');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function onAnswerCsvSelected(e) {
+        const f = e.target.files[0];
+        if (!f) return;
+        selectedAnswerCsv = f;
+        document.getElementById('answerKeyStatus').textContent = `Selected: ${f.name}`;
+        document.getElementById('answerKeyStatus').style.background = '#d4edda';
+        document.getElementById('answerKeyStatus').style.color = '#155724';
+    }
+
+    function setupSelectors() {
+        const testSelect = document.getElementById('testSelect');
+        const versionSelect = document.getElementById('versionSelect');
+        testSelect.addEventListener('change', () => {
+            const tid = testSelect.value;
+            versionSelect.innerHTML = '<option value="">-- Chọn mã đề --</option>';
+            if (!tid || !VERSIONS_BY_TEST_ID[tid]) return;
+            for (const v of VERSIONS_BY_TEST_ID[tid]) {
+                const opt = document.createElement('option');
+                opt.value = v.id;
+                opt.textContent = v.versionCode;
+                versionSelect.appendChild(opt);
+            }
+        });
+    }
+
+    async function submitForGrading() {
+        console.log('🔵 submitForGrading() called');
+        console.log('🔵 selectedFile:', selectedFile);
+
+        if (!selectedFile) {
+            console.log('❌ No file selected!');
+            alert('Vui lòng chọn ảnh!');
+            return;
+        }
+
+        console.log('✅ File OK:', selectedFile.name);
+        updateStatus('Đang xử lý...', '#f59e0b');
+        document.getElementById('resultsDisplay').innerHTML = '<div style="color:#667eea;font-weight:600;padding:12px;">⚙️ Đang phân tích ảnh...</div>';
+        document.getElementById('detailsDisplay').innerHTML = '<div style="color:#94a3b8;text-align:center;padding:12px;">Đang chờ kết quả...</div>';
+
+        const form = new FormData();
+        form.append('image', selectedFile);
+        const versionId = document.getElementById('versionSelect').value;
+        if (versionId) form.append('versionId', versionId);
+        if (selectedAnswerCsv) form.append('answerCsv', selectedAnswerCsv);
+
+        // Confidence (accept comma decimal)
+        const confRaw = (document.getElementById('confidenceInput').value || '0.35').trim();
+        form.append('conf', confRaw);
+        console.log('✅ Confidence:', confRaw);
+
+        try {
+            console.log('📤 POST', API_ENDPOINT);
+            const res = await fetch(API_ENDPOINT, { method: 'POST', body: form });
+            console.log('📥 Response:', res.status, res.ok);
+
+            if (!res.ok) {
+                const errData = await res.json();
+                console.error('❌ Error data:', errData);
+                throw new Error(errData.error || 'Server trả lỗi ' + res.status);
+            }
+            const data = await res.json();
+            console.log('✅ Success data:', data);
+
+            // Render all results
+            renderResults(data);
+
+            // Save results to Spring Boot backend database (if available)
+            if (typeof saveResultsToBackend === 'function') {
+                await saveResultsToBackend(data, selectedFile);
+            } else {
+                console.log('ℹ️ saveResultsToBackend not defined; skipping persistence');
+            }
+
+            updateStatus('Hoàn tất chấm bài!', '#10b981');
+
+        } catch (err) {
+            console.error('💥 Exception:', err);
+            const errorHtml = '<div style="color:#ef4444;padding:12px;background:#fee;border-radius:8px;"><strong>❌ Lỗi:</strong> ' + err.message + '</div>';
+            document.getElementById('resultsDisplay').innerHTML = errorHtml;
+            document.getElementById('detailsDisplay').innerHTML = '<div style="color:#94a3b8;text-align:center;padding:12px;">Không có dữ liệu</div>';
+            updateStatus('Chấm bài thất bại', '#ef4444');
+            console.error('Grading error:', err);
+        }
+    }
+
+    function renderResults(payload) {
+        const sbd = payload.sbd || '';
+        const made = payload.made || '';
+        const correct = payload.correct || 0;
+        const total = payload.total || 0;
+        const score = payload.score10 != null ? payload.score10 : 0;
+        const questions = payload.questions || [];
+        const recognized = sbd;
+        const idMatch = (String(STUDENT_CODE || '').padStart(6,'0') === String(recognized || '').padStart(6,'0'));
+        const keySrc = payload.answerKeySource ? String(payload.answerKeySource) : 'unknown';
+
+    const recInput = document.getElementById('recognizedIdInput');
+    if (recInput) recInput.value = recognized;
+
+        // Build questions table with improved layout
+        let questionsHtml = '';
+        if (questions.length > 0) {
+            questionsHtml = `
+                <div style="margin-top:20px;">
+                    <div style="background:#667eea; color:white; padding:14px 18px; border-radius:8px 8px 0 0; font-size:18px; font-weight:700;">
+                        📝 Chi tiết các câu hỏi
+                    </div>
+                    <div style="max-height:350px; overflow-y:auto; border:2px solid #667eea; border-top:none; border-radius:0 0 8px 8px;">
+                        <table style="width:100%; border-collapse:collapse; font-size:16px;">
+                            <thead style="position:sticky; top:0; background:#f8f9fa; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                                <tr>
+                                    <th style="padding:14px; border-bottom:2px solid #667eea; text-align:center; font-weight:700; font-size:16px;">Câu số</th>
+                                    <th style="padding:14px; border-bottom:2px solid #667eea; text-align:center; font-weight:700; font-size:16px;">Học sinh chọn</th>
+                                    <th style="padding:14px; border-bottom:2px solid #667eea; text-align:center; font-weight:700; font-size:16px;">Đáp án đúng</th>
+                                    <th style="padding:14px; border-bottom:2px solid #667eea; text-align:center; font-weight:700; font-size:16px;">Kết quả</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+            for (const q of questions) {
+                const rowColor = q.isCorrect ? '#d4edda' : '#f8d7da';
+                const mark = q.isCorrect ? '✓' : '✗';
+                const markColor = q.isCorrect ? '#28a745' : '#dc3545';
+                questionsHtml += `
+                    <tr style="background:${rowColor}; transition:all 0.2s;">
+                        <td style="padding:14px; border-bottom:1px solid #dee2e6; text-align:center; font-weight:600; font-size:16px;">${q.question}</td>
+                        <td style="padding:14px; border-bottom:1px solid #dee2e6; text-align:center; font-weight:700; font-size:18px; color:#2c3e50;">${q.studentAnswer || '-'}</td>
+                        <td style="padding:14px; border-bottom:1px solid #dee2e6; text-align:center; font-weight:700; font-size:18px; color:#667eea;">${q.correctAnswer || '-'}</td>
+                        <td style="padding:14px; border-bottom:1px solid #dee2e6; text-align:center; font-size:24px; font-weight:700; color:${markColor};">${mark}</td>
+                    </tr>`;
+            }
+            questionsHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+        }
+
+        // Update sidebar results - SEPARATED INTO TWO SECTIONS
+        // Phần 1: Kết quả tổng quan (ở section đầu)
+        const summaryHtml = `
+            <div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:24px; border-radius:12px; box-shadow:0 4px 20px rgba(102,126,234,0.4);">
+                <div style="font-size:22px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:10px; border-bottom:2px solid rgba(255,255,255,0.3); padding-bottom:12px;">
+                    📊 Kết quả chấm bài
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                    <div style="background:rgba(255,255,255,0.15); padding:12px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:15px;"><strong>🎯 Số báo danh:</strong></span>
+                        <span style="font-weight:700; font-size:17px;">${sbd || 'N/A'}</span>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.15); padding:12px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:15px;"><strong>📋 Mã đề:</strong></span>
+                        <span style="font-weight:700; font-size:17px;">${made || 'N/A'}</span>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+                    <div style="background:rgba(76,175,80,0.3); padding:14px; border-radius:8px; text-align:center; border:2px solid rgba(76,175,80,0.5);">
+                        <div style="font-size:14px; margin-bottom:6px; opacity:0.9;">✅ Đúng</div>
+                        <div style="font-weight:700; font-size:20px;">${correct} câu</div>
+                    </div>
+                    <div style="background:rgba(244,67,54,0.3); padding:14px; border-radius:8px; text-align:center; border:2px solid rgba(244,67,54,0.5);">
+                        <div style="font-size:14px; margin-bottom:6px; opacity:0.9;">❌ Sai</div>
+                        <div style="font-weight:700; font-size:20px;">${total - correct} câu</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.35); padding:14px; border-radius:8px; text-align:center; border:2px solid rgba(255,255,255,0.6);">
+                        <div style="font-size:14px; margin-bottom:6px; opacity:0.9;">⭐ Điểm</div>
+                        <div style="font-weight:700; font-size:24px; color:#fff59d;">${score.toFixed(2)}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Phần 2: Bảng chi tiết câu hỏi (ở section thứ hai)
+        const detailsHtml = questionsHtml ? `
+            <div style="background:white; padding:16px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.1); max-height:500px; overflow-y:auto;">
+                ${questionsHtml}
+            </div>
+        ` : '<div style="color:#94a3b8; text-align:center; padding:20px;">Không có dữ liệu chi tiết</div>';
+
+        // Cập nhật 2 phần riêng biệt
+        document.getElementById('resultsDisplay').innerHTML = summaryHtml;
+        document.getElementById('detailsDisplay').innerHTML = detailsHtml;
+
+        // Show detailed results in main content area
+        if (questions.length > 0) {
+            let detailedHtml = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:12px;">';
+
+            for (const q of questions) {
+                const bgColor = q.isCorrect ? 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)' : 'linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%)';
+                const borderColor = q.isCorrect ? '#28a745' : '#dc3545';
+                const icon = q.isCorrect ? '✓' : '✗';
+                const iconColor = q.isCorrect ? '#28a745' : '#dc3545';
+
+                detailedHtml += `
+                    <div style="background:${bgColor}; border-left:4px solid ${borderColor}; border-radius:8px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <span style="font-weight:700; font-size:16px; color:#374151;">Câu ${q.question}</span>
+                            <span style="font-size:24px; color:${iconColor};">${icon}</span>
+                        </div>
+                        <div style="display:flex; gap:16px; font-size:14px; color:#4b5563;">
+                            <div style="flex:1;">
+                                <div style="font-weight:600; color:#6b7280; margin-bottom:4px;">Học sinh:</div>
+                                <div style="font-size:20px; font-weight:700; color:#1f2937;">${q.studentAnswer || '-'}</div>
+                            </div>
+                            <div style="flex:1;">
+                                <div style="font-weight:600; color:#6b7280; margin-bottom:4px;">Đáp án:</div>
+                                <div style="font-size:20px; font-weight:700; color:#1f2937;">${q.correctAnswer || '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            detailedHtml += '</div>';
+
+            document.getElementById('detailedResultsContent').innerHTML = detailedHtml;
+            document.getElementById('detailedResults').style.display = 'block';
+        } else {
+            document.getElementById('detailedResults').style.display = 'none';
+        }
+
+        // Show graded preview image in canvas-wrapper
+        if (payload.previewBase64) {
+            const placeholder = document.getElementById('canvasPlaceholder');
+            const preview = document.getElementById('gradedPreview');
+            const canvas = document.getElementById('imageCanvas');
+
+            placeholder.style.display = 'none';
+            canvas.style.display = 'none';
+            preview.style.display = 'block';
+            preview.src = payload.previewBase64;
+
+            // Reset zoom and pan for new image
+            currentZoom = 100;
+            panX = 0;
+            panY = 0;
+            applyTransform();
+            document.getElementById('zoomLevel').textContent = '100%';
+
+            // Fit to screen after image loads
+            preview.onload = function() {
+                fitToScreen();
+            };
+        }
+    }
+
+    function setupCanvasInteractions() {
+        const wrapper = document.getElementById('canvasWrapper');
+        const target = () => (document.getElementById('gradedPreview').style.display !== 'none') ? document.getElementById('gradedPreview') : canvas;
+        wrapper.addEventListener('mousedown', (e) => {
+            isPanning = true; lastX = e.clientX; lastY = e.clientY;
+            (target()).classList.add('dragging');
+        });
+        window.addEventListener('mouseup', () => {
+            isPanning = false; (target()).classList.remove('dragging');
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            lastX = e.clientX; lastY = e.clientY;
+            panX += dx;
+            panY += dy;
+            applyTransform();
+        });
+        wrapper.addEventListener('wheel', (e) => {
+            if (!imageLoaded && document.getElementById('gradedPreview').style.display === 'none') return;
+            e.preventDefault();
+            const delta = Math.sign(e.deltaY);
+            if (delta > 0) zoomOut(); else zoomIn();
+        }, { passive: false });
+    }
+
+    function zoomIn() { setZoom(currentZoom + 10); }
+    function zoomOut() { setZoom(currentZoom - 10); }
+    function setZoom(z) {
+        currentZoom = Math.max(10, Math.min(400, z));
+        document.getElementById('zoomLevel').textContent = currentZoom + '%';
+        applyTransform();
+    }
+    function fitToScreen() {
+        // Reset to fit width of wrapper roughly
+        const wrapper = document.getElementById('canvasWrapper');
+        const t = (document.getElementById('gradedPreview').style.display !== 'none') ? document.getElementById('gradedPreview') : canvas;
+        if (!t) return;
+        const wW = wrapper.clientWidth;
+        const wH = wrapper.clientHeight || (window.innerHeight - 100);
+        const naturalW = (t === canvas) ? canvas.width : t.naturalWidth;
+        const naturalH = (t === canvas) ? canvas.height : t.naturalHeight;
+        if (naturalW && naturalH) {
+            const scale = Math.min(wW / naturalW, wH / naturalH) * 100;
+            currentZoom = Math.max(10, Math.min(400, Math.floor(scale)));
+        } else {
+            currentZoom = 100;
+        }
+        panX = 0; panY = 0; applyTransform();
+        document.getElementById('zoomLevel').textContent = currentZoom + '%';
+    }
+    function resetView() {
+        currentZoom = 100; panX = 0; panY = 0; applyTransform();
+        document.getElementById('zoomLevel').textContent = currentZoom + '%';
+    }
+    function toggleDragMode() {
+        isDragMode = !isDragMode;
+        const btns = document.getElementsByClassName('drag-mode-button');
+        if (btns[0]) {
+            btns[0].textContent = isDragMode ? '🧭 Disable Drag Mode' : '🎯 Enable Drag Mode';
+        }
+    }
+
+    function showPositions() {
+        updateStatus('Showing positions overlay (placeholder)', '#3b82f6');
+    }
+    function showResults() {
+        const rd = document.getElementById('resultsDisplay');
+        rd.scrollIntoView({ behavior: 'smooth' });
+        updateStatus('Showing results (placeholder)', '#3b82f6');
+    }
+
+    function copyStudentCode() {
+        const el = document.getElementById('studentCodeInput');
+        if (!el) {
+            updateStatus('Không tìm thấy ô mã học sinh', '#ef4444');
+            return;
+        }
+        el.select();
+        el.setSelectionRange(0, 999);
+        document.execCommand('copy');
+        updateStatus('Đã copy mã học sinh', '#10b981');
+    }
+
+    function updateStatus(text, color) {
+        const b = document.getElementById('statusBadge');
+        b.textContent = text;
+        b.style.background = color || '#10b981';
+    }
+
+    function applyTransform() {
+        const t = (document.getElementById('gradedPreview').style.display !== 'none') ? document.getElementById('gradedPreview') : canvas;
+        const scale = currentZoom / 100;
+        const translate = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        t.style.transform = translate;
+    }
+
+    // Optional: Persist OMR results to backend. If no endpoint is configured, this remains a no-op.
+    async function saveResultsToBackend(omrData, sourceFile) {
+        try {
+            const SAVE_URL = window.OMR_BACKEND_SAVE_URL || null; // e.g., '/api/omr/results'
+            if (!SAVE_URL) {
+                return; // no-op when not configured
+            }
+
+            const payload = {
+                sbd: omrData.sbd ?? null,
+                made: omrData.made ?? null,
+                correct: omrData.correct ?? 0,
+                total: omrData.total ?? 0,
+                score10: omrData.score10 ?? 0,
+                answerKeySource: omrData.answerKeySource ?? null,
+                questions: omrData.questions ?? []
+            };
+
+            const res = await fetch(SAVE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                console.warn('⚠️ Failed to save OMR results:', res.status, text);
+            }
+        } catch (e) {
+            console.warn('⚠️ saveResultsToBackend error:', e);
+        }
+    }
+</script>
+</body>
+</html>

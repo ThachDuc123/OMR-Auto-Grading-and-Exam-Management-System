@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ - Hệ thống TraluAI</title>
+
+    <link th:href="@{/assets/img/logo.png}" rel="icon">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f7fafc;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid #d8dcf0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 70px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            height: 100%;
+            max-width: 100%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .user-info:hover {
+            background: #f7fafc;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .user-role {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 200px;
+            overflow: hidden;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #4a5568;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f7fafc;
+        }
+
+        .user-menu.active .dropdown-menu {
+            display: block;
+        }
+
+        /* Navigation styles */
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #4a5568;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover {
+            background-color: #f7fafc;
+            color: #667eea;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+            background-color: #ebf4ff;
+        }
+
+        .nav-item p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .nav-indicator {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background-color: #667eea;
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-item.active .nav-indicator {
+            opacity: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 90px 30px 30px 290px; /* Adjusted padding to account for sidebar width */
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            width: 100%;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-icon {
+            color: #667eea;
+            font-size: 20px;
+        }
+
+        .exam-list, .achievement-list {
+            gap: 8px;
+        }
+
+        .exam-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .exam-item:hover {
+            background: #ebf4ff;
+        }
+
+        .exam-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .exam-name {
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .exam-time {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .achievement-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .achievement-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .achievement-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .achievement-class {
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .achievement-teacher {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .achievement-score {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        /* Class Grid */
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .class-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .class-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #89f7fe, #66a6ff);
+            color: white;
+        }
+
+        .class-code {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .class-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .class-teacher {
+            font-size: 14px;
+        }
+
+        .class-body {
+            padding: 20px;
+        }
+
+        .class-stats {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-text {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        /* Recent Results */
+        .recent-results {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .result-table {
+            width: 100%;
+            min-width: 800px; /* Đảm bảo bảng không bị vỡ khi màn hình nhỏ */
+        }
+
+        .result-table th, .result-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .result-table th {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+        }
+
+        .result-table td {
+            font-size: 16px;
+            color: #2d3748;
+        }
+
+        .score {
+            font-weight: bold;
+        }
+
+        .score.high { color: #38a169; }
+        .score.medium { color: #dd6b20; }
+        .score.low { color: #e53e3e; }
+
+        .view-details-btn {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .view-details-btn:hover {
+            background: #5a67d8;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 70px;
+            bottom: 0;
+            width: 260px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            padding: 20px 0;
+            z-index: 99;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 16px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #4a5568;
+        }
+
+        .menu-item:hover {
+            background-color: #f7fafc;
+            color: #667eea;
+        }
+
+        .menu-item.active {
+            background-color: #ebf4ff;
+            color: #667eea;
+        }
+
+        .menu-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: currentColor;
+        }
+
+        .menu-text {
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .menu-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .menu-status {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <div class="logo">
+            <img th:src="@{/assets/img/logo.png}" alt="OMR Logo" style="height: 40px;">
+            <span>TraluAI</span>
+        </div>
+        <div class="nav-menu">
+            <a class="nav-item" th:if="${#strings.equalsIgnoreCase(user.role, 'student') or #strings.equalsIgnoreCase(user.role, 'học sinh')}" th:classappend="${currentPath == '/student_home' ? 'active' : ''}" href="/student_home">
+                <p>Tổng quan</p>
+                <div class="nav-indicator"></div>
+            </a>
+            <a class="nav-item" th:classappend="${currentPath == '/student_class' ? 'active' : ''}" href="/student_class">
+                <p>Lớp học</p>
+                <div class="nav-indicator"></div>
+            </a>
+        </div>
+        <div class="user-menu" id="user-menu">
+            <div class="user-info">
+                <div class="user-avatar" th:style="'background-image: url(' + ${user.avatarUrl} + ')'"></div>
+                <div class="user-details">
+                    <span class="user-name" th:text="${user.fullName}">Nguyễn Văn An</span>
+                    <span class="user-role"
+                          th:text="${#strings.equalsIgnoreCase(user.role, 'student') or #strings.equalsIgnoreCase(user.role, 'học sinh') ? 'Học sinh' : 'Giáo viên'}">
+                        Học sinh
+                    </span>
+                </div>
+            </div>
+            <div class="dropdown-menu">
+                <a href="/profile">Thông tin cá nhân</a>
+                <a href="/logout">Đăng xuất</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar">
+    <nav class="sidebar-menu">
+        <a href="#" class="menu-item active">
+            <div class="menu-title">
+                <i class="bi bi-journal-text menu-icon"></i>
+                <p class="menu-text">Đề thi hiện có</p>
+            </div>
+        </a>
+
+        <a href="#" class="menu-item">
+            <div class="menu-title">
+                <i class="bi bi-graph-up menu-icon"></i>
+                <p class="menu-text">Kết quả gần đây</p>
+            </div>
+            <div class="menu-badge" th:text="${#lists.size(recentResults)}"></div>
+        </a>
+
+        <a href="#" class="menu-item">
+            <div class="menu-title">
+                <i class="bi bi-trophy menu-icon"></i>
+                <p class="menu-text">Thành tích</p>
+            </div>
+        </a>
+    </nav>
+</div>
+
+<div class="main-content">
+    <div class="dashboard-grid">
+        <!-- Today's Exams -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-calendar2-check card-icon"></i>
+                    Đề thi hôm nay
+                </h2>
+            </div>
+            <div class="exam-list">
+                <div class="exam-item" th:each="exam : ${todayExams}">
+                    <div class="exam-info">
+                        <div class="exam-name" th:text="${exam.title}">Kiểm tra giữa kỳ Toán</div>
+                        <div class="exam-time" th:text="${exam.time}">8:00 - 9:30</div>
+                    </div>
+                    <a href="#" class="view-details-btn">Làm bài</a>
+                </div>
+                <!-- Show if no exams today -->
+                <div th:if="${#lists.isEmpty(todayExams)}" class="exam-item">
+                    <div class="exam-info">
+                        <div class="exam-name">Không có đề thi nào hôm nay</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Results -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-graph-up card-icon"></i>
+                    Kết quả gần đây
+                </h2>
+            </div>
+            <div class="result-table-container">
+                <table class="result-table">
+                    <thead>
+                    <tr>
+                        <th>Môn học</th>
+                        <th>Bài thi</th>
+                        <th>Ngày làm</th>
+                        <th>Điểm số</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="result : ${recentResults}">
+                        <td th:text="${result.subject}">Toán học</td>
+                        <td th:text="${result.testTitle}">Kiểm tra giữa kỳ I</td>
+                        <td th:text="${#dates.format(result.submissionDate, 'dd/MM/yyyy')}">10/10/2023</td>
+                        <td>
+                            <span class="score"
+                                  th:text="${result.totalScore} + ' / ' + ${result.maxScore}"
+                                  th:classappend="${result.totalScore / result.maxScore >= 0.8 ? 'high' : (result.totalScore / result.maxScore >= 0.5 ? 'medium' : 'low')}">
+                                9.5 / 10
+                            </span>
+                        </td>
+                        <td><a th:href="@{'/results/' + ${result.resultId}}" class="view-details-btn">Xem chi tiết</a></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(recentResults)}">
+                        <td colspan="5" style="text-align: center; color: #718096;">Chưa có kết quả nào.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Class Achievements -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="bi bi-trophy card-icon"></i>
+                    Thành tích
+                </h2>
+            </div>
+            <div class="achievement-list">
+                <div class="achievement-item" th:each="achievement : ${classAchievements}">
+                    <div class="achievement-info">
+                        <div class="achievement-class" th:text="${achievement.className}">Toán 10A1</div>
+                        <div class="achievement-teacher" th:text="${achievement.teacherName}">GV: Nguyễn Văn A</div>
+                    </div>
+                    <div class="achievement-score" th:text="${achievement.averageScore + ' điểm'}">8.5 điểm</div>
+                </div>
+                <!-- Show if no achievements -->
+                <div th:if="${#lists.isEmpty(classAchievements)}" class="achievement-item">
+                    <div class="achievement-info">
+                        <div class="achievement-class">Chưa có thành tích nào</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('user-menu').addEventListener('click', function() {
+        this.classList.toggle('active');
+    });
+
+    function viewClass(classId) {
+        // Redirect to class details page, e.g., /class/{id}
+        window.location.href = '/class/' + classId;
+    }
+</script>
+
+</body>
+</html>
