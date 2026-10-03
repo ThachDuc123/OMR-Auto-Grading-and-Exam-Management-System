@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lớp học - Hệ thống OMR</title>
+    <title>Lớp học - Hệ thống TraluAI</title>
     <style>
         * {
             margin: 0;
@@ -591,7 +591,7 @@
     <div class="header-content">
         <div class="logo">
             <img th:src="@{/assets/img/logo.png}" alt="OMR Logo" style="height: 40px;">
-            <span>OMR System</span>
+            <span>TraluAI</span>
         </div>
         <div class="nav-menu">
             <a class="nav-item" th:if="${#strings.equalsIgnoreCase(user.role, 'student') or #strings.equalsIgnoreCase(user.role, 'học sinh')}" th:classappend="${currentPath == '/student_home' ? 'active' : ''}" href="/student_home">

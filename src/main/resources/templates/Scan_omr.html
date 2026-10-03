@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner </title>
+    <title>Scanner - TraluAI</title>
     <link th:href="@{/assets/img/logo.png}" rel="icon">
 
     <style>
@@ -690,8 +690,8 @@
 <header class="header">
     <div class="header-content">
         <a class="logo">
-            <img th:src="@{/assets/img/logo.png}" alt="OMR Logo" style="height: 40px;">
-            <span>OMR System</span>
+            <img th:src="@{/assets/img/logo.png}" alt="x Logo" style="height: 40px;">
+            <span>TraluAI</span>
         </a>
 
         <div class="nav-menu">
@@ -738,7 +738,7 @@
     <aside class="sidebar">
         <div class="scanner-header">
             <div class="scanner-icon">📄</div>
-            <h2 class="scanner-title">OMR Scanner</h2>
+            <h2 class="scanner-title">TraluAI Scanner</h2>
         </div>
 
 
@@ -765,6 +765,16 @@
             <input type="text" id="confidenceInput" class="settings-input" value="0.35" placeholder="0.35" />
             <small style="color:#6b7280">(ngưỡng YOLO, mặc định 0.35 — chấp nhận 0,35)</small>
             <div style="height:10px;"></div>
+        </div>
+
+        <!-- Student Info Section (needed by JS: recognizedIdInput, studentCodeInput) -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <span class="section-icon">🧑‍🎓</span>
+                Thông tin học sinh
+            </div>
+            <label class="settings-label" for="recognizedIdInput">Mã học sinh nhận dạng (6 số):</label>
+            <input type="text" id="recognizedIdInput" class="settings-input" placeholder="Ví dụ: 000123" maxlength="6" />
         </div>
 
         <!-- Answer Key Section -->
@@ -1028,8 +1038,12 @@
             // Render all results
             renderResults(data);
 
-            // Save results to Spring Boot backend database
-            await saveResultsToBackend(data, selectedFile);
+            // Save results to Spring Boot backend database (if available)
+            if (typeof saveResultsToBackend === 'function') {
+                await saveResultsToBackend(data, selectedFile);
+            } else {
+                console.log('ℹ️ saveResultsToBackend not defined; skipping persistence');
+            }
 
             updateStatus('Hoàn tất chấm bài!', '#10b981');
 
@@ -1054,7 +1068,8 @@
         const idMatch = (String(STUDENT_CODE || '').padStart(6,'0') === String(recognized || '').padStart(6,'0'));
         const keySrc = payload.answerKeySource ? String(payload.answerKeySource) : 'unknown';
 
-        document.getElementById('recognizedIdInput').value = recognized;
+    const recInput = document.getElementById('recognizedIdInput');
+    if (recInput) recInput.value = recognized;
 
         // Build questions table with improved layout
         let questionsHtml = '';
@@ -1278,6 +1293,10 @@
 
     function copyStudentCode() {
         const el = document.getElementById('studentCodeInput');
+        if (!el) {
+            updateStatus('Không tìm thấy ô mã học sinh', '#ef4444');
+            return;
+        }
         el.select();
         el.setSelectionRange(0, 999);
         document.execCommand('copy');
@@ -1295,6 +1314,38 @@
         const scale = currentZoom / 100;
         const translate = `translate(${panX}px, ${panY}px) scale(${scale})`;
         t.style.transform = translate;
+    }
+
+    // Optional: Persist OMR results to backend. If no endpoint is configured, this remains a no-op.
+    async function saveResultsToBackend(omrData, sourceFile) {
+        try {
+            const SAVE_URL = window.OMR_BACKEND_SAVE_URL || null; // e.g., '/api/omr/results'
+            if (!SAVE_URL) {
+                return; // no-op when not configured
+            }
+
+            const payload = {
+                sbd: omrData.sbd ?? null,
+                made: omrData.made ?? null,
+                correct: omrData.correct ?? 0,
+                total: omrData.total ?? 0,
+                score10: omrData.score10 ?? 0,
+                answerKeySource: omrData.answerKeySource ?? null,
+                questions: omrData.questions ?? []
+            };
+
+            const res = await fetch(SAVE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                console.warn('⚠️ Failed to save OMR results:', res.status, text);
+            }
+        } catch (e) {
+            console.warn('⚠️ saveResultsToBackend error:', e);
+        }
     }
 </script>
 </body>
